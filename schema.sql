@@ -33,4 +33,4 @@ CREATE TABLE IF NOT EXISTS pages (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
-CREATE INDEX IF NOT EXISTS idx_pages_published ON pages(published);
+CREATE INDEX IF NOT EXISTS idx_pages_published ON pages(published, slug);
