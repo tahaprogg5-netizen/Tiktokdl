@@ -1,0 +1,9 @@
+{
+  "name": "tiktokdl",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "build": "vite build" },
+  "dependencies": { "tiktokapi-src": "1.2.0" },
+  "devDependencies": { "vite": "^6.4.1" }
+}
