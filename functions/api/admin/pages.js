@@ -1,10 +1,10 @@
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 const enc=new TextEncoder();
-const b64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+const b64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 async function sign(value,secret){const key=await crypto.subtle.importKey("raw",enc.encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);return b64(await crypto.subtle.sign("HMAC",key,enc.encode(value)));}
 async function authorized(request,env){
  if(!env.ADMIN_PASSWORD)return false;
- const token=request.headers.get("authorization")?.replace(/^Bearer\\s+/i,"");
+ const token=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"");
  const [payload,signature]=(token||"").split(".");
  if(!payload||!signature||signature!==await sign(payload,env.ADMIN_PASSWORD))return false;
  try{const claims=JSON.parse(atob(payload.replace(/-/g,"+").replace(/_/g,"/")));return !!claims.exp&&claims.exp>Date.now();}catch{return false;}
