@@ -27,7 +27,7 @@ export async function onRequestGet({ request, env }) {
 }
 async function authorize(request, env) {
   if (!env.ADMIN_PASSWORD) return false;
-  const token = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
+  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const [payload, signature] = (token || "").split(".");
   if (!payload || !signature || signature !== await sign(payload, env.ADMIN_PASSWORD)) return false;
   let claims;
