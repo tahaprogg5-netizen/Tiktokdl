@@ -1,3 +1,4 @@
+import "./style.css";
 const $ = (id) => document.getElementById(id);
 const button = $("downloadBtn"), status = $("status"), result = $("result");
 const fmt = (n) => new Intl.NumberFormat("fa-IR").format(n);
