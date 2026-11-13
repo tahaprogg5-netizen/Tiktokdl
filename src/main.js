@@ -75,6 +75,16 @@ adForm.addEventListener("submit",async e=>{
  const id=$("adId").value,body={title:$("adTitleInput").value.trim(),image_url:$("adImageInput").value.trim(),target_url:$("adTargetInput").value.trim(),enabled:$("adEnabledInput").checked};
  try{const r=await fetch(id?"/api/admin/ads/"+id:"/api/admin/ads",{method:id?"PUT":"POST",headers:{"content-type":"application/json",authorization:"Bearer "+adminToken},body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.error||"Save failed");$("adStatus").textContent=dict[lang].adSaved;resetAdForm();await loadAdminAds();await loadPublicAds()}catch(e){$("adStatus").textContent=e.message}
 });
+$("clearHistory").onclick=async()=>{
+ if(!confirm(lang==="fa"?"تمام تاریخچه دانلودها برای همیشه پاک شود؟ شمارنده نام فایل‌ها تغییر نمی‌کند.":"Permanently clear all download history? File numbering will remain unchanged."))return;
+ const control=$("clearHistory");control.disabled=true;$("historyStatus").textContent=lang==="fa"?"در حال پاک‌کردن…":"Clearing…";
+ try{
+  const r=await fetch("/api/admin/stats",{method:"DELETE",headers:{authorization:"Bearer "+adminToken}}),d=await r.json();if(!r.ok)throw new Error(d.error||"Clear failed");
+  $("total").textContent=fmt(0);$("today").textContent=fmt(0);$("success").textContent=fmt(0);$("recent").replaceChildren();
+  $("historyStatus").textContent=lang==="fa"?"تاریخچه با موفقیت پاک شد.":"Download history cleared.";
+ }catch(e){$("historyStatus").textContent=e.message}
+ finally{control.disabled=false}
+};
 const modal=$("adminModal");let logoClicks=0,clickTimer;
 $("brandSecret").addEventListener("click",()=>{logoClicks++;clearTimeout(clickTimer);clickTimer=setTimeout(()=>logoClicks=0,1600);if(logoClicks>=5){logoClicks=0;modal.classList.remove("hidden");$("adminPassword").focus()}});
 $("adminClose").onclick=()=>modal.classList.add("hidden");
