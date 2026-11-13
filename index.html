@@ -1,57 +1,51 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0b1020">
-<title>MultiDL — دانلودر ساده</title>
-<style>
-:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--line:#26334d;--muted:#9aa8c2;--accent:#7c9cff;--text:#f4f7ff}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#1c2c51 0,transparent 55%),var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column}
-header{height:76px;border-bottom:1px solid #ffffff12;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100% - 1040px)/2))}
-.brand{font-weight:800;font-size:21px;letter-spacing:-.5px}.brand span{color:var(--accent)}nav a{color:var(--muted);text-decoration:none;font-size:13px;margin-right:20px}
-main{width:min(680px,calc(100% - 32px));margin:76px auto 48px;text-align:center;flex:1}
-.tag{display:inline-flex;border:1px solid var(--line);background:#ffffff08;color:#b9c9ff;border-radius:99px;padding:8px 13px;font-size:12px}
-h1{font-size:clamp(30px,6vw,46px);line-height:1.4;margin:22px 0 10px;letter-spacing:-1px}h1 span{color:var(--accent)}
-.sub{color:var(--muted);font-size:14px;line-height:2;margin:0 auto 32px;max-width:520px}
-.panel{background:linear-gradient(145deg,#151f35,#101729);border:1px solid var(--line);border-radius:20px;padding:12px;box-shadow:0 22px 70px #0005}
-.inputrow{display:flex;gap:9px}.inputrow input{min-width:0;flex:1;background:#0b1222;border:1px solid #2b3955;border-radius:12px;padding:16px;color:var(--text);font:14px Tahoma;outline:none;direction:ltr;text-align:left}.inputrow input:focus{border-color:var(--accent)}
-button{border:0;border-radius:12px;background:var(--accent);color:#081126;font:700 14px Tahoma;padding:0 22px;cursor:pointer}button:hover{filter:brightness(1.08)}
-.note{color:var(--muted);font-size:11px;line-height:1.9;margin:12px 6px 2px;text-align:right}
-.result{display:none;margin-top:15px;padding:14px;border-radius:12px;background:#0b1222;border:1px solid var(--line);text-align:right;font-size:13px;line-height:2}.result a{color:#a9bcff;overflow-wrap:anywhere}
-.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}.feature{padding:17px 10px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff05}.feature b{display:block;font-size:13px;margin-bottom:7px}.feature small{color:var(--muted);font-size:11px;line-height:1.8}
-footer{border-top:1px solid #ffffff12;padding:22px;text-align:center;color:#77849d;font-size:11px}
-@media(max-width:560px){header{height:64px}nav a{margin-right:10px;font-size:12px}main{margin-top:48px}.inputrow{flex-direction:column}.inputrow button{height:48px}.features{grid-template-columns:1fr}.feature{padding:14px}}
-</style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131b"><meta name="description" content="دانلودر ساده و سریع تیک‌تاک">
+<title>TikTokDL | دانلودر تیک‌تاک</title>
 </head>
 <body>
-<header><div class="brand">Multi<span>DL</span></div><nav><a href="#about">درباره سرویس</a><a href="#help">راهنما</a></nav></header>
-<main>
-<div class="tag">ساده، سریع، بدون شلوغی</div>
-<h1>فایل خودت را <span>دریافت کن</span></h1>
-<p class="sub">لینک مستقیم فایل رسانه‌ای‌ای را وارد کن که مالک آن هستی یا اجازه دریافتش را داری.</p>
-<section class="panel" aria-label="دریافت فایل">
-<div class="inputrow"><input id="url" type="url" placeholder="https://example.com/my-video.mp4" autocomplete="url"><button id="go">بررسی لینک</button></div>
-<div class="note">این نسخه لینک مستقیم فایل را بررسی می‌کند؛ لینک صفحات شبکه‌های اجتماعی پشتیبانی نمی‌شود. قوانین و حقوق صاحب محتوا را رعایت کن.</div>
-<div class="result" id="result" role="status"></div>
-</section>
-<div class="features" id="about">
-<div class="feature"><b>طراحی مینیمال</b><small>رابط خلوت و سازگار با موبایل</small></div>
-<div class="feature"><b>بدون ثبت‌نام</b><small>بدون حساب کاربری و دیتابیس</small></div>
-<div class="feature"><b>میزبانی Cloudflare</b><small>قابل انتشار روی Cloudflare Pages</small></div>
-</div>
+<header class="topbar">
+  <button class="brand" id="brandSecret" type="button" aria-label="TikTokDL"><span class="brand-icon">♪</span><span>TikTok<span class="brand-accent">DL</span></span></button>
+  <div class="top-actions">
+    <button class="tool-btn" id="langToggle" type="button">EN</button>
+    <button class="tool-btn" id="themeToggle" type="button" aria-label="تغییر تم">☼</button>
+  </div>
+</header>
+<main class="container">
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span><span data-i18n="eyebrow">فقط برای TikTok</span></div>
+    <h1 data-i18n="headline">ویدیوهای تیک‌تاک را <span>دریافت کن</span></h1>
+    <p class="subtitle" data-i18n="subtitle">لینک ویدیوی عمومی را وارد کن تا لینک دریافت آن بررسی شود.</p>
+  </div>
+  <section class="download-card">
+    <label for="videoUrl" data-i18n="linkLabel">لینک ویدیوی TikTok</label>
+    <div class="input-row"><input id="videoUrl" type="url" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="url" dir="ltr"><button id="downloadBtn" type="button"><span data-i18n="download">دریافت لینک</span><b>←</b></button></div>
+    <label class="consent"><input id="permission" type="checkbox"><span data-i18n="permission">تأیید می‌کنم مالک محتوا هستم یا اجازه دریافت آن را دارم.</span></label>
+    <p id="status" class="status" role="status"></p>
+    <div id="result" class="result hidden"></div>
+  </section>
+  <section class="ad-slot" aria-label="Advertisement">
+    <span class="ad-label" data-i18n="adLabel">تبلیغات</span>
+    <div><strong data-i18n="adTitle">جایگاه بنر تبلیغاتی</strong><small data-i18n="adSub">بنر تبلیغاتی شما در این قسمت نمایش داده می‌شود.</small></div>
+    <span class="ad-size">728 × 90</span>
+  </section>
+  <p class="disclaimer" data-i18n="disclaimer">لطفاً فقط محتوایی را دریافت کن که مالک آن هستی یا اجازه استفاده از آن را داری. رعایت قوانین پلتفرم و حقوق سازندگان بر عهده کاربر است.</p>
 </main>
-<footer id="help">MultiDL · برای فایل‌هایی که مجاز به دریافت آن‌ها هستی</footer>
-<script>
-const input=document.getElementById('url'),result=document.getElementById('result');
-document.getElementById('go').addEventListener('click',()=>{
- let u;try{u=new URL(input.value.trim())}catch{result.style.display='block';result.textContent='لطفاً یک آدرس معتبر وارد کن.';return}
- if(!['http:','https:'].includes(u.protocol)){result.style.display='block';result.textContent='فقط لینک‌های HTTP و HTTPS پذیرفته می‌شوند.';return}
- if(!/\.(mp4|webm|mov|mp3|m4a|wav|jpg|jpeg|png|webp)(\?|#|$)/i.test(u.pathname+u.search)){result.style.display='block';result.textContent='این آدرس شبیه لینک مستقیم فایل نیست. لینک مستقیم فایل را وارد کن.';return}
- result.style.display='block';result.replaceChildren();
- const p=document.createElement('div');p.textContent='لینک مستقیم شناسایی شد:';
- const a=document.createElement('a');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent='باز کردن فایل';
- result.append(p,a);
-});
-input.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('go').click()});
-</script>
+<footer><span>© TikTokDL</span><span class="footer-dot">·</span><span data-i18n="footer">ساده، خلوت و مخصوص تیک‌تاک</span></footer>
+<div id="adminModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+ <section class="modal-panel">
+  <button id="adminClose" class="close" type="button" aria-label="Close">×</button>
+  <h2 id="adminTitle" data-i18n="adminTitle">پنل مدیریت</h2>
+  <p class="modal-sub" data-i18n="adminSub">ورود مدیر برای مشاهده آمار</p>
+  <form id="adminLogin"><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Admin password" required><button class="primary" type="submit" data-i18n="login">ورود</button></form>
+  <p id="adminError" class="status error"></p>
+  <div id="dashboard" class="hidden">
+   <div class="stats"><div><small data-i18n="allDownloads">کل درخواست‌ها</small><strong id="total">۰</strong></div><div><small data-i18n="todayDownloads">امروز</small><strong id="today">۰</strong></div><div><small data-i18n="successful">موفق</small><strong id="success">۰</strong></div></div>
+   <h3 data-i18n="recent">درخواست‌های اخیر</h3><div class="table-wrap"><table><thead><tr><th data-i18n="date">زمان</th><th data-i18n="type">نوع</th><th data-i18n="state">وضعیت</th></tr></thead><tbody id="recent"></tbody></table></div>
+  </div>
+ </section>
+</div>
+<script type="module" src="/src/main.js"></script>
 </body></html>
