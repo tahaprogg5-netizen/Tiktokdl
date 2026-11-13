@@ -61,7 +61,7 @@ async function fetchById(id) {
     openudid: randomChars("0123456789abcdef", 16),
     uuid: randomChars("1234567890", 16),
     _rticket: String(now * 1000),
-    ts: String(Math.floor(now / 1000)),
+    ts: String(now),
     device_brand: "Google",
     device_type: "Pixel 4",
     device_platform: "android",
