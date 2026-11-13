@@ -1,0 +1,12 @@
+name = "tiktokdl"
+compatibility_date = "2026-11-13"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tiktokdl-db"
+database_id = "a77e77a5-9291-405c-be32-9bf2fc887c71"
+
+[observability]
+enabled = true
