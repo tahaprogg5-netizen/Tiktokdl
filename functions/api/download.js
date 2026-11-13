@@ -37,10 +37,10 @@ async function getTikTokData(sharedUrl) {
   });
 
   const finalUrl = pageResponse.url || sharedUrl;
-  const idMatch = finalUrl.match(/\\d{17,21}/);
+  const idMatch = finalUrl.match(/\d{17,21}/);
   if (!idMatch) {
     // Some TikTok links expose the item id in the original URL.
-    const originalMatch = sharedUrl.match(/(?:video\\/|item_id=)(\\d{17,21})/);
+    const originalMatch = sharedUrl.match(/(?:video\/|item_id=)(\d{17,21})/);
     if (!originalMatch) throw new Error("TikTok could not resolve this public link.");
     return fetchById(originalMatch[1]);
   }
