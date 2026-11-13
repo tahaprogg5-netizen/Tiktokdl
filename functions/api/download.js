@@ -69,10 +69,16 @@ export async function onRequestPost({ request, env }) {
     }
 
     await env.DB?.prepare("INSERT INTO downloads(media_type, success) VALUES('video', 1)").run();
+    const sequence = await env.DB.prepare(
+      "UPDATE download_sequence SET value = value + 1 WHERE id = 1 RETURNING value"
+    ).first();
+    const videoCode = Number(sequence?.value || 0);
     return json({
       ok: true,
       type: "video",
       description: data.title || data.title_audio || "",
+      code: videoCode,
+      filename: "TikTokDL-" + videoCode + ".mp4",
       links: links.slice(0, 10)
     });
   } catch (error) {
