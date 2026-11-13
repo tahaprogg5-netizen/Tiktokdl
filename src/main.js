@@ -81,6 +81,104 @@ $("adminLogin").addEventListener("submit",async e=>{
   const s=await fetch("/api/admin/stats",{headers:{authorization:"Bearer "+d.token}}),stats=await s.json();if(!s.ok)throw new Error(stats.error||"Stats unavailable");
   $("total").textContent=fmt(stats.total);$("today").textContent=fmt(stats.today);$("success").textContent=fmt(stats.success);$("recent").replaceChildren();
   stats.recent.forEach(row=>{const tr=document.createElement("tr");[new Date(row.created_at+"Z").toLocaleString(lang==="fa"?"fa-IR":"en-US"),row.media_type==="image"?dict[lang].image:dict[lang].video,row.success?dict[lang].ok:dict[lang].fail].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.append(td)});$("recent").append(tr)});
-  $("dashboard").classList.remove("hidden");$("adminLogin").classList.add("hidden");$("adminError").textContent="";await loadAdminAds();
+  $("dashboard").classList.remove("hidden");$("adminLogin").classList.add("hidden");$("adminError").textContent="";await loadAdminAds();await loadAdminPages();
  }catch(err){$("adminError").textContent=err.message}
 });
+
+// Ready-made page builder
+let editingPageId=null;
+let pageBlocksData=[];
+const blockNames={heading:"عنوان",text:"متن",image:"تصویر",banner:"بنر",button:"دکمه",divider:"جداکننده",spacer:"فاصله"};
+function resetPageEditor(){
+ editingPageId=null;pageBlocksData=[];$("pageEditorForm").reset();$("pageEditorTitle").textContent="ساخت صفحه جدید";
+ $("cancelPageEdit").classList.add("hidden");renderPageBlocks();
+}
+$("newPageBtn").onclick=()=>{resetPageEditor();$("pageTitleInput").focus()};
+$("cancelPageEdit").onclick=resetPageEditor;
+document.querySelectorAll("[data-add-block]").forEach(btn=>btn.addEventListener("click",()=>{
+ if(pageBlocksData.length>=30){$("pageStatus").textContent="حداکثر ۳۰ بلوک برای هر صفحه مجاز است.";return}
+ const type=btn.dataset.addBlock;
+ const b={type};
+ if(["heading","text","banner","button"].includes(type))b.text=type==="heading"?"عنوان جدید":type==="button"?"مشاهده":"متن خود را وارد کنید";
+ if(type==="image"){b.url="";b.alt="";}
+ if(type==="button")b.url="https://";
+ pageBlocksData.push(b);renderPageBlocks();
+}));
+function renderPageBlocks(){
+ const box=$("pageBlocks");box.replaceChildren();
+ if(!pageBlocksData.length){const p=document.createElement("p");p.className="empty-ads";p.textContent="هنوز بلوکی اضافه نشده است.";box.append(p);return}
+ pageBlocksData.forEach((block,index)=>{
+  const card=document.createElement("div");card.className="page-block-card";
+  const head=document.createElement("div");head.className="page-block-head";
+  const name=document.createElement("strong");name.textContent=(index+1)+". "+blockNames[block.type];head.append(name);
+  const controls=document.createElement("div");controls.className="page-block-controls";
+  [["↑",()=>{if(index>0){[pageBlocksData[index-1],pageBlocksData[index]]=[pageBlocksData[index],pageBlocksData[index-1]];renderPageBlocks()}}],["↓",()=>{if(index<pageBlocksData.length-1){[pageBlocksData[index+1],pageBlocksData[index]]=[pageBlocksData[index],pageBlocksData[index+1]];renderPageBlocks()}}],["حذف",()=>{pageBlocksData.splice(index,1);renderPageBlocks()}]].forEach(([label,fn])=>{const b=document.createElement("button");b.type="button";b.className="tool-btn";b.textContent=label;b.onclick=fn;controls.append(b)});
+  head.append(controls);card.append(head);
+  if(["heading","text","banner","button"].includes(block.type)){
+   const field=document.createElement(block.type==="text"||block.type==="banner"?"textarea":"input");
+   if(field.tagName==="INPUT")field.type="text";field.value=block.text||"";field.maxLength=5000;field.placeholder="متن بلوک";field.oninput=()=>block.text=field.value;card.append(field);
+  }
+  if(["image","button"].includes(block.type)){
+   const url=document.createElement("input");url.type="url";url.dir="ltr";url.placeholder="https://...";url.value=block.url||"";url.oninput=()=>block.url=url.value;card.append(url);
+  }
+  if(block.type==="image"){
+   const alt=document.createElement("input");alt.placeholder="توضیح تصویر (اختیاری)";alt.value=block.alt||"";alt.oninput=()=>block.alt=alt.value;card.append(alt);
+  }
+  box.append(card);
+ });
+}
+async function loadAdminPages(){
+ const box=$("pagesList");box.replaceChildren();
+ try{
+  const r=await fetch("/api/admin/pages",{headers:{authorization:"Bearer "+adminToken}}),d=await r.json();if(!r.ok)throw new Error(d.error||"خطا در دریافت صفحه‌ها");
+  if(!d.pages?.length){const p=document.createElement("p");p.className="empty-ads";p.textContent="هنوز صفحه‌ای ساخته نشده است.";box.append(p);return}
+  d.pages.forEach(page=>{
+   const item=document.createElement("div");item.className="page-list-item";
+   const info=document.createElement("div");info.className="page-list-info";
+   const title=document.createElement("strong");title.textContent=page.title;info.append(title);
+   const meta=document.createElement("small");meta.textContent="/p/"+page.slug+" · "+(page.published?"منتشر شده":"پیش‌نویس");info.append(meta);item.append(info);
+   const actions=document.createElement("div");actions.className="page-list-actions";
+   const edit=document.createElement("button");edit.type="button";edit.className="tool-btn";edit.textContent="ویرایش";edit.onclick=()=>{
+    editingPageId=page.id;$("pageEditorTitle").textContent="ویرایش صفحه";$("pageTitleInput").value=page.title;$("pageSlugInput").value=page.slug;$("pagePublishedInput").checked=!!page.published;
+    try{pageBlocksData=JSON.parse(page.content_json||"[]")}catch{pageBlocksData=[]}
+    $("cancelPageEdit").classList.remove("hidden");renderPageBlocks();$("pageEditorForm").scrollIntoView({behavior:"smooth",block:"start"});
+   };actions.append(edit);
+   if(page.published){const view=document.createElement("a");view.className="tool-btn page-view-link";view.href="/p/"+encodeURIComponent(page.slug);view.target="_blank";view.rel="noopener";view.textContent="مشاهده";actions.append(view)}
+   const del=document.createElement("button");del.type="button";del.className="tool-btn danger-btn";del.textContent="حذف";del.onclick=async()=>{
+    if(!confirm("این صفحه حذف شود؟"))return;
+    try{const x=await fetch("/api/admin/pages/"+page.id,{method:"DELETE",headers:{authorization:"Bearer "+adminToken}}),z=await x.json();if(!x.ok)throw new Error(z.error||"حذف ناموفق بود");if(editingPageId===page.id)resetPageEditor();await loadAdminPages()}catch(e){$("pageStatus").textContent=e.message}
+   };actions.append(del);item.append(actions);box.append(item);
+  });
+ }catch(e){$("pageStatus").textContent=e.message}
+}
+$("pageEditorForm").addEventListener("submit",async e=>{
+ e.preventDefault();$("pageStatus").textContent="در حال ذخیره…";
+ const body={title:$("pageTitleInput").value.trim(),slug:$("pageSlugInput").value.trim().toLowerCase(),published:$("pagePublishedInput").checked,blocks:pageBlocksData};
+ try{
+  const r=await fetch(editingPageId?"/api/admin/pages/"+editingPageId:"/api/admin/pages",{method:editingPageId?"PUT":"POST",headers:{"content-type":"application/json",authorization:"Bearer "+adminToken},body:JSON.stringify(body)});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||"ذخیره صفحه ناموفق بود");
+  $("pageStatus").textContent="صفحه با موفقیت ذخیره شد.";resetPageEditor();$("pageStatus").textContent="صفحه با موفقیت ذخیره شد.";await loadAdminPages();
+ }catch(err){$("pageStatus").textContent=err.message}
+});
+
+// Public custom page route: /p/slug
+if(location.pathname.startsWith("/p/")){
+ const slug=decodeURIComponent(location.pathname.slice(3)).replace(/\/$/,"");
+ document.querySelector(".topbar")?.classList.add("hidden");document.querySelector("footer")?.classList.add("hidden");
+ const root=document.querySelector(".container");root.className="public-page-container";root.replaceChildren();
+ const message=document.createElement("p");message.className="public-page-message";message.textContent="در حال بارگذاری صفحه…";root.append(message);
+ fetch("/api/pages/"+encodeURIComponent(slug)).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error||"صفحه پیدا نشد");return d.page}).then(page=>{
+  root.replaceChildren();const title=document.createElement("h1");title.className="public-page-title";title.textContent=page.title;root.append(title);
+  (page.blocks||[]).forEach(block=>{
+   let el;
+   if(block.type==="heading"){el=document.createElement("h2");el.className="public-block-heading";el.textContent=block.text||""}
+   else if(block.type==="text"){el=document.createElement("p");el.className="public-block-text";el.textContent=block.text||""}
+   else if(block.type==="image"){el=document.createElement("img");el.className="public-block-image";el.src=block.url;el.alt=block.alt||"";el.loading="lazy"}
+   else if(block.type==="banner"){el=document.createElement("div");el.className="public-block-banner";el.textContent=block.text||""}
+   else if(block.type==="button"){el=document.createElement("a");el.className="public-block-button";el.textContent=block.text||"مشاهده";el.href=block.url;el.target="_blank";el.rel="noopener noreferrer"}
+   else if(block.type==="divider"){el=document.createElement("hr");el.className="public-block-divider"}
+   else if(block.type==="spacer"){el=document.createElement("div");el.className="public-block-spacer";el.setAttribute("aria-hidden","true")}
+   if(el)root.append(el);
+  });
+ }).catch(err=>{message.textContent=err.message;message.classList.add("error")});
+}
