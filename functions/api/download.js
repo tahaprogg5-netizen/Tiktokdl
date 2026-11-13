@@ -39,7 +39,7 @@ export async function onRequestPost({ request, env }) {
   try {
     // Cloudflare Pages Function calls the same ttdl endpoint used by
     // btch-downloader 2.3.2 in the BOTCAHX/tiktokdl-api repository.
-    const endpoint = new URL("https://backend1.tioo.eu.org/ttdl");
+    const endpoint = new URL("https://backend1.tioo.eu.org/api/downloader/ttdl");
     endpoint.searchParams.set("url", body.url);
 
     const response = await fetch(endpoint.toString(), {
@@ -56,11 +56,13 @@ export async function onRequestPost({ request, env }) {
     }
 
     const data = await response.json();
-    if (data?.status === false || data?.error) {
+    if (data?.status === false || data?.status === "error" || data?.success === false || data?.error) {
       throw new Error(data.message || data.error || "No media returned");
     }
 
-    const videos = Array.isArray(data?.video) ? data.video : [];
+    const videos = Array.isArray(data?.video) ? data.video :
+      Array.isArray(data?.data?.video) ? data.data.video :
+      Array.isArray(data?.data?.links?.video) ? data.data.links.video : [];
     const links = [...new Set(videos.map(mediaUrl).filter(url => /^https:\/\//i.test(url)))];
 
     if (!links.length) {
@@ -76,7 +78,8 @@ export async function onRequestPost({ request, env }) {
     return json({
       ok: true,
       type: "video",
-      description: data.title || data.title_audio || "",
+      description: data.title || data.data?.title || data.title_audio || "",
+      author: data.creator || data.author?.username || data.author || "",
       code: videoCode,
       filename: "TikTokDL-" + videoCode + ".mp4",
       links: links.slice(0, 10)
