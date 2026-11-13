@@ -38,7 +38,7 @@ button.addEventListener("click",async()=>{
   status.textContent=d.ready;status.className="status success";
   const title=document.createElement("div");title.className="result-title";title.textContent=data.description||d.ready;result.append(title);
   if(data.author){const author=document.createElement("p");author.className="author";author.textContent="@"+data.author;result.append(author)}
-  (data.links||[]).forEach((href,i)=>{const a=document.createElement("a");a.className="result-link";a.href=href;a.target="_blank";a.rel="noopener noreferrer";a.textContent=(data.type==="image"?d.image:d.video)+" "+fmt(i+1)+" ↗";result.append(a)});
+  (data.links||[]).forEach((href,i)=>{const a=document.createElement("a");a.className="result-link";a.href="/api/file?url="+encodeURIComponent(href)+"&code="+encodeURIComponent(data.code);a.download=data.filename||("TikTokDL-"+data.code+".mp4");a.textContent=(data.filename||("TikTokDL-"+data.code+".mp4"))+(data.links.length>1?" · "+fmt(i+1):"")+" ↓";result.append(a)});
   result.classList.remove("hidden");
  }catch(e){status.textContent=e.message||d.generic;status.className="status error"}
  finally{button.disabled=false;button.querySelector("span").textContent=d.download}
