@@ -55,6 +55,26 @@
     </form>
     <p id="adStatus" class="status"></p><div id="adsList" class="ads-list"></div>
    </div>
+   <section class="pages-admin">
+    <div class="pages-heading"><div><h3>صفحه‌ساز</h3><p>با بلوک‌های آماده، صفحه‌های مستقل بساز و منتشر کن.</p></div><button type="button" class="primary" id="newPageBtn">+ صفحه جدید</button></div>
+    <div class="pages-layout">
+     <div class="pages-list-panel"><strong>صفحه‌های ساخته‌شده</strong><div id="pagesList" class="pages-list"><p class="empty-ads">در حال دریافت…</p></div></div>
+     <form id="pageEditorForm" class="page-editor">
+      <h4 id="pageEditorTitle">ساخت صفحه جدید</h4>
+      <label>عنوان صفحه<input id="pageTitleInput" maxlength="120" required placeholder="مثلاً درباره ما"></label>
+      <label>آدرس صفحه (انگلیسی)<input id="pageSlugInput" maxlength="60" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="about-us" dir="ltr"></label>
+      <label class="page-publish"><input id="pagePublishedInput" type="checkbox"><span>انتشار صفحه برای همه</span></label>
+      <div class="block-toolbar"><strong>افزودن بلوک</strong>
+       <div class="block-add-buttons">
+        <button type="button" data-add-block="heading">عنوان</button><button type="button" data-add-block="text">متن</button><button type="button" data-add-block="image">تصویر</button><button type="button" data-add-block="banner">بنر</button><button type="button" data-add-block="button">دکمه</button><button type="button" data-add-block="divider">جداکننده</button><button type="button" data-add-block="spacer">فاصله</button>
+       </div>
+      </div>
+      <div id="pageBlocks" class="page-blocks"><p class="empty-ads">هنوز بلوکی اضافه نشده است.</p></div>
+      <div class="page-editor-actions"><button type="submit" class="primary">ذخیره صفحه</button><button type="button" class="tool-btn hidden" id="cancelPageEdit">انصراف</button></div>
+      <p id="pageStatus" class="status"></p>
+     </form>
+    </div>
+   </section>
   </div>
  </section>
 </div>
