@@ -9,6 +9,8 @@ Minimal Persian RTL static site for Cloudflare Pages.
 - Does not scrape social platforms, bypass access controls, or remove watermarks.
 
 ## Deploy to Cloudflare Pages
+
+Cloudflare Pages build settings: command `npm run build`, output directory `dist`, root directory `/`. The repository includes `wrangler.toml` for the D1 binding.
 1. In Cloudflare Dashboard, open **Workers & Pages**.
 2. Create a Pages project and connect this GitHub repository.
 3. Framework preset: **None**.
