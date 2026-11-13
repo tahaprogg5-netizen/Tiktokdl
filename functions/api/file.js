@@ -53,14 +53,14 @@ export async function onRequestGet({ request }) {
     }
 
     const filename = "TikTokDL-" + Number(code) + ".mp4";
+    // Do not forward upstream Content-Length: Cloudflare may transparently decompress
+    // the upstream response, making the original length incorrect and corrupting downloads.
     const headers = new Headers({
-      "content-type": upstream.headers.get("content-type") || "video/mp4",
+      "content-type": upstream.headers.get("content-type") || "application/octet-stream",
       "content-disposition": 'attachment; filename="' + filename + '"; filename*=UTF-8\'\'' + encodeURIComponent(filename),
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff"
     });
-    const length = upstream.headers.get("content-length");
-    if (length) headers.set("content-length", length);
     return new Response(upstream.body, { status: 200, headers });
   } catch (error) {
     console.error("Video file proxy error:", error?.message || String(error));
