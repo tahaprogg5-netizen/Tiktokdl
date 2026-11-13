@@ -39,7 +39,7 @@ export async function onRequestPost({ request, env }) {
   try {
     // Cloudflare Pages Function calls the same ttdl endpoint used by
     // btch-downloader 2.3.2 in the BOTCAHX/tiktokdl-api repository.
-    const endpoint = new URL("https://backend1.tioo.eu.org/api/downloader/ttdl");
+    const endpoint = new URL("https://backend1.tioo.eu.org/ttdl");
     endpoint.searchParams.set("url", body.url);
 
     const response = await fetch(endpoint.toString(), {
