@@ -13,7 +13,8 @@ function allowedMediaHost(hostname) {
     "tiktokcdn-us.com",
     "tiktokv.com",
     "byteoversea.com",
-    "ibytedtos.com"
+    "ibytedtos.com",
+    "tikwm.com"
   ].some(domain => host === domain || host.endsWith("." + domain));
 }
 
@@ -21,6 +22,7 @@ export async function onRequestGet({ request }) {
   const requestUrl = new URL(request.url);
   const rawUrl = requestUrl.searchParams.get("url");
   const code = requestUrl.searchParams.get("code");
+  const inline = requestUrl.searchParams.get("inline") === "1";
   if (!rawUrl || !/^\d+$/.test(code || "")) {
     return json({ error: "لینک دانلود نامعتبر است." }, 400);
   }
@@ -37,13 +39,19 @@ export async function onRequestGet({ request }) {
   }
 
   try {
+    const requestHeaders = {
+      "User-Agent": "TikTokDL/1.0",
+      "Accept": "video/*,*/*;q=0.8"
+    };
+    const range = request.headers.get("Range");
+    if (range) requestHeaders.Range = range;
     const upstream = await fetch(media.toString(), {
-      headers: { "User-Agent": "TikTokDL/1.0", "Accept": "video/*,*/*;q=0.8" },
+      headers: requestHeaders,
       redirect: "follow",
       signal: AbortSignal.timeout(60000)
     });
 
-    if (!upstream.ok || !upstream.body) {
+    if ((!upstream.ok && upstream.status !== 206) || !upstream.body) {
       return json({ error: "دریافت فایل ویدیو ناموفق بود." }, 502);
     }
 
@@ -57,11 +65,14 @@ export async function onRequestGet({ request }) {
     // the upstream response, making the original length incorrect and corrupting downloads.
     const headers = new Headers({
       "content-type": upstream.headers.get("content-type") || "application/octet-stream",
-      "content-disposition": 'attachment; filename="' + filename + '"; filename*=UTF-8\'\'' + encodeURIComponent(filename),
+      "content-disposition": (inline ? "inline" : "attachment") + '; filename="' + filename + '"; filename*=UTF-8\'\'' + encodeURIComponent(filename),
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff"
     });
-    return new Response(upstream.body, { status: 200, headers });
+    const contentRange = upstream.headers.get("content-range");
+    if (contentRange) headers.set("content-range", contentRange);
+    if (upstream.headers.get("accept-ranges")) headers.set("accept-ranges", upstream.headers.get("accept-ranges"));
+    return new Response(upstream.body, { status: upstream.status === 206 ? 206 : 200, headers });
   } catch (error) {
     console.error("Video file proxy error:", error?.message || String(error));
     return json({ error: "ارتباط برای دریافت فایل برقرار نشد." }, 502);
