@@ -44,6 +44,18 @@
   <div id="dashboard" class="hidden">
    <div class="stats"><div><small data-i18n="allDownloads">کل درخواست‌ها</small><strong id="total">۰</strong></div><div><small data-i18n="todayDownloads">امروز</small><strong id="today">۰</strong></div><div><small data-i18n="successful">موفق</small><strong id="success">۰</strong></div></div>
    <h3 data-i18n="recent">درخواست‌های اخیر</h3><div class="table-wrap"><table><thead><tr><th data-i18n="date">زمان</th><th data-i18n="type">نوع</th><th data-i18n="state">وضعیت</th></tr></thead><tbody id="recent"></tbody></table></div>
+   <div class="ads-admin">
+    <div class="ads-heading"><h3 data-i18n="adsManager">مدیریت تبلیغات</h3><span data-i18n="adsHint">تبلیغات فعال در سایت نمایش داده می‌شوند.</span></div>
+    <form id="adForm" class="ad-form">
+     <input id="adId" type="hidden">
+     <label><span data-i18n="adName">عنوان تبلیغ</span><input id="adTitleInput" maxlength="100" required placeholder="عنوان تبلیغ"></label>
+     <label><span data-i18n="adImage">لینک تصویر (اختیاری)</span><input id="adImageInput" type="url" placeholder="https://..."></label>
+     <label><span data-i18n="adTarget">لینک مقصد</span><input id="adTargetInput" type="url" placeholder="https://..."></label>
+     <label class="ad-enabled"><input id="adEnabledInput" type="checkbox" checked><span data-i18n="adActive">نمایش تبلیغ</span></label>
+     <div class="ad-form-actions"><button class="primary" type="submit" data-i18n="saveAd">ذخیره تبلیغ</button><button class="tool-btn hidden" id="cancelAdEdit" type="button" data-i18n="cancel">انصراف</button></div>
+    </form>
+    <p id="adStatus" class="status"></p><div id="adsList" class="ads-list"></div>
+   </div>
   </div>
  </section>
 </div>
