@@ -5,13 +5,18 @@ function json(data, status = 200) {
   });
 }
 
-function validTikTokUrl(value) {
+function normalizeTikTokUrl(value) {
+  if (typeof value !== "string") return null;
+  let input = value.trim();
+  if (!input) return null;
+  if (!/^https?:\/\//i.test(input)) input = "https://" + input;
   try {
-    const u = new URL(value);
-    return u.protocol === "https:" &&
-      (u.hostname === "tiktok.com" || u.hostname.endsWith(".tiktok.com"));
+    const u = new URL(input);
+    if (!["https:", "http:"].includes(u.protocol)) return null;
+    if (!(u.hostname === "tiktok.com" || u.hostname.endsWith(".tiktok.com"))) return null;
+    return u.toString();
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -32,15 +37,15 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "درخواست نامعتبر است." }, 400);
   }
 
-  if (typeof body.url !== "string" || body.url.length > 500 || !validTikTokUrl(body.url)) {
+  const tiktokUrl = normalizeTikTokUrl(body?.url);
+  if (!tiktokUrl || tiktokUrl.length > 4096) {
     return json({ error: "لینک معتبر TikTok وارد کن." }, 400);
   }
 
   try {
-    // Cloudflare Pages Function calls the same ttdl endpoint used by
-    // btch-downloader 2.3.2 in the BOTCAHX/tiktokdl-api repository.
-    const endpoint = new URL("https://backend1.tioo.eu.org/ttdl");
-    endpoint.searchParams.set("url", body.url);
+    // BOTCAHX/tiktokdl-api documents GET /tiktok/api.php?url=...
+    const endpoint = new URL("https://backend1.tioo.eu.org/tiktok/api.php");
+    endpoint.searchParams.set("url", tiktokUrl);
 
     const response = await fetch(endpoint.toString(), {
       method: "GET",
@@ -57,7 +62,7 @@ export async function onRequestPost({ request, env }) {
 
     const data = await response.json();
     if (data?.status === false || data?.status === "error" || data?.success === false || data?.error) {
-      throw new Error(data.message || data.error || "No media returned");
+      throw new Error(typeof data.error === "string" ? data.error : data.message || "No media returned");
     }
 
     const videos = Array.isArray(data?.video) ? data.video :
@@ -67,7 +72,7 @@ export async function onRequestPost({ request, env }) {
 
     if (!links.length) {
       await env.DB?.prepare("INSERT INTO downloads(media_type, success) VALUES('video', 0)").run();
-      return json({ error: "سرویس استخراج، لینک ویدیو برنگرداند. ممکن است لینک خصوصی یا نامعتبر باشد." }, 502);
+      return json({ error: "سرویس استخراج لینک ویدیویی برنگرداند. ممکن است لینک خصوصی یا نامعتبر باشد." }, 502);
     }
 
     await env.DB?.prepare("INSERT INTO downloads(media_type, success) VALUES('video', 1)").run();
