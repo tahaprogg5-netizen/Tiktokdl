@@ -38,6 +38,12 @@ button.addEventListener("click",async()=>{
   status.textContent=d.ready;status.className="status success";
   const title=document.createElement("div");title.className="result-title";title.textContent=data.description||d.ready;result.append(title);
   if(data.author){const author=document.createElement("p");author.className="author";author.textContent="@"+data.author;result.append(author)}
+  const primaryLink=(data.links||[])[0];
+  if(primaryLink){
+   const preview=document.createElement("video");preview.className="video-preview";preview.controls=true;preview.playsInline=true;preview.preload="metadata";
+   preview.src="/api/file?url="+encodeURIComponent(primaryLink)+"&code="+encodeURIComponent(data.code)+"&inline=1";
+   preview.setAttribute("aria-label",lang==="fa"?"پیش‌نمایش ویدیو":"Video preview");result.append(preview);
+  }
   (data.links||[]).forEach((href,i)=>{const a=document.createElement("a");a.className="result-link";a.href="/api/file?url="+encodeURIComponent(href)+"&code="+encodeURIComponent(data.code);a.download=data.filename||("TikTokDL-"+data.code+".mp4");a.textContent=(data.filename||("TikTokDL-"+data.code+".mp4"))+(data.links.length>1?" · "+fmt(i+1):"")+" ↓";result.append(a)});
   result.classList.remove("hidden");
  }catch(e){status.textContent=e.message||d.generic;status.className="status error"}
