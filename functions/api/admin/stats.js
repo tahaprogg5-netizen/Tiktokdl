@@ -25,3 +25,21 @@ export async function onRequestGet({ request, env }) {
     return json({ total: total?.count || 0, today: today?.count || 0, success: success?.count || 0, recent: recent?.results || [] });
   } catch { return json({ error: "خواندن آمار با خطا روبه‌رو شد." }, 500); }
 }
+async function authorize(request, env) {
+  if (!env.ADMIN_PASSWORD) return false;
+  const token = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
+  const [payload, signature] = (token || "").split(".");
+  if (!payload || !signature || signature !== await sign(payload, env.ADMIN_PASSWORD)) return false;
+  let claims;
+  try { claims = JSON.parse(atob(payload.replace(/-/g,"+").replace(/_/g,"/"))); } catch { return false; }
+  return !!claims.exp && claims.exp >= Date.now();
+}
+export async function onRequestDelete({ request, env }) {
+  if (!await authorize(request, env)) return json({ error: "دسترسی مدیر لازم است." }, 401);
+  try {
+    await env.DB.prepare("DELETE FROM downloads").run();
+    return json({ ok: true, message: "تاریخچه دانلودها پاک شد." });
+  } catch {
+    return json({ error: "پاک‌کردن تاریخچه ناموفق بود." }, 500);
+  }
+}
