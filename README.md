@@ -1,24 +1,20 @@
-# MultiDL
+# TikTokDL
 
-Minimal Persian RTL static site for Cloudflare Pages.
+A minimal Persian/English TikTok-only link interface for Cloudflare Pages.
 
-## Current scope
-- Static website; no database and no account system.
-- Unlimited use; no daily quota.
-- Accepts direct HTTP(S) media-file links that the visitor owns or is authorized to access.
-- Does not scrape social platforms, bypass access controls, or remove watermarks.
+## Features
+- TikTok-only URL form
+- Dedicated advertisement banner placeholder
+- Hidden admin entry (tap the brand logo five times), protected by ADMIN_PASSWORD
+- Dark/light theme and Persian/English language selection (saved in the visitor's browser)
+- No daily download quota
+- D1 statistics for admin dashboard
 
-## Deploy to Cloudflare Pages
+## Cloudflare Pages
+Build command: npm run build
+Output directory: dist
+Root directory: /
 
-Cloudflare Pages build settings: command `npm run build`, output directory `dist`, root directory `/`. The repository includes `wrangler.toml` for the D1 binding.
-1. In Cloudflare Dashboard, open **Workers & Pages**.
-2. Create a Pages project and connect this GitHub repository.
-3. Framework preset: **None**.
-4. Build command: leave empty.
-5. Build output directory: `/`.
-6. Deploy.
+Set the production secret ADMIN_PASSWORD in Workers & Pages > tiktokdl > Settings > Variables and Secrets. D1 binding DB is configured in wrangler.toml.
 
-The site is static, so no database or environment variables are required.
-
-## Notes
-The current version validates direct media-file URL formats and offers a link to open the file. It does not proxy or host files. Persistent analytics and a secure admin panel require an external analytics service or server-side storage; neither is included in this no-database version.
+Note: theme and language choices are currently per-browser preferences. The ad area is a placeholder; add the actual creative/link when available. TikTok endpoints and third-party APIs may change, so the downloader API needs live testing after deployment.
