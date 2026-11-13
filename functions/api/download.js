@@ -32,9 +32,6 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "درخواست نامعتبر است." }, 400);
   }
 
-  if (body?.authorized !== true) {
-    return json({ error: "ابتدا تأیید کن که مالک محتوا هستی یا اجازه دریافت آن را داری." }, 400);
-  }
   if (typeof body.url !== "string" || body.url.length > 500 || !validTikTokUrl(body.url)) {
     return json({ error: "لینک معتبر TikTok وارد کن." }, 400);
   }
