@@ -42,14 +42,29 @@ async function recordDownload(env, success) {
 }
 
 function extractVideoUrl(payload) {
-  if (!payload || payload.status !== true) return "";
+  if (!payload || typeof payload !== "object") return "";
+
+  // BOTCAHX/tiktokdl-api returns { audio: [...], video: [...] }.
+  // It does not return a "status: true" field.
   const candidates = [
-    ...(Array.isArray(payload.video) ? payload.video : [payload.video]),
+    payload.video,
     payload.data?.video,
+    payload.result?.video,
     payload.data?.play,
-    payload.data?.hdplay
+    payload.data?.hdplay,
+    payload.play,
+    payload.hdplay
   ];
-  return candidates.find(value => typeof value === "string" && isAllowedMediaUrl(value)) || "";
+
+  for (const item of candidates) {
+    const values = Array.isArray(item) ? item : [item];
+    for (const value of values) {
+      const candidate = typeof value === "string" ? value.trim() : "";
+      if (candidate && isAllowedMediaUrl(candidate)) return candidate;
+    }
+  }
+
+  return "";
 }
 
 export async function onRequestPost({ request, env }) {
