@@ -1,4 +1,4 @@
-import scraper from "btch-downloader";
+import { ttdl } from "btch-downloader";
 import { isAllowedMediaUrl } from "../_lib/media-hosts.js";
 
 function json(data, status = 200) {
@@ -82,7 +82,7 @@ export async function onRequestPost({ request, env }) {
   try {
     // Run the downloader library inside the Cloudflare Pages Function.
     // No separate Koa/Node server or external API base URL is required.
-    const result = await scraper.ttdl(tiktokUrl);
+    const result = await ttdl(tiktokUrl);
     const links = [...new Set(
       getVideoItems(result)
         .map(mediaUrl)
