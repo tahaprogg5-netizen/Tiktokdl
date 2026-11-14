@@ -83,7 +83,7 @@ infoButton.addEventListener("click", async () => {
     const parsed = new URL(currentYoutubeUrl);
     const shortId = parsed.hostname.includes("youtu.be") ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
     const thumb = $("youtubeThumb");
-    if (shortId && /^[\\w-]{6,20}$/.test(shortId)) {
+    if (shortId && /^[\w-]{6,20}$/.test(shortId)) {
       thumb.src = "https://i.ytimg.com/vi/" + encodeURIComponent(shortId) + "/hqdefault.jpg";
       thumb.classList.remove("hidden");
     } else {
@@ -144,7 +144,7 @@ downloadButton.addEventListener("click", async () => {
     }
     const blob = await response.blob();
     const disposition = response.headers.get("content-disposition") || "";
-    const encoded = disposition.match(/filename\\*=UTF-8''([^;]+)/i);
+    const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i);
     const basic = disposition.match(/filename="?([^";]+)"?/i);
     const filename = encoded ? decodeURIComponent(encoded[1]) : (basic ? basic[1] : "DL-Hub-video.mp4");
     const objectUrl = URL.createObjectURL(blob);
