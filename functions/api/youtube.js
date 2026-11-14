@@ -30,7 +30,7 @@ export async function onRequestPost({ request, env }) {
   if (body.action === "info" || body.action === "resolutions") endpoint = paths[body.action];
   else if (body.action === "download") {
     const quality = typeof body.resolution === "string" ? body.resolution : "";
-    if (!/^\\d{3,4}p$/.test(quality)) return json({ error: "کیفیت انتخاب‌شده معتبر نیست." }, 400);
+    if (!/^\d{3,4}p$/.test(quality)) return json({ error: "کیفیت انتخاب‌شده معتبر نیست." }, 400);
     endpoint = "/download/" + encodeURIComponent(quality);
   } else return json({ error: "عملیات ناشناخته است." }, 400);
 
