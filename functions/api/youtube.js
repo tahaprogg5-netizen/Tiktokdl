@@ -59,7 +59,7 @@ export async function onRequestPost({ request, env }) {
         const raw = await upstream.text();
         let data = {};
         try { data = JSON.parse(raw); } catch {}
-        return json({ error: data.error || "دانلود از سرویس انجام نشد." }, upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502);
+        return json({ error: data.error || "دانلود از سرویس انجام نشد.", code: data.code || "backend_download_error", detail: data.detail || undefined }, upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502);
       }
       const contentType = (upstream.headers.get("content-type") || "").toLowerCase();
       if (contentType.includes("application/json") || contentType.includes("text/")) {
@@ -85,7 +85,7 @@ export async function onRequestPost({ request, env }) {
     let data;
     try { data = JSON.parse(raw); }
     catch { return json({ error: "پاسخ سرویس YouTube معتبر نیست." }, 502); }
-    if (!upstream.ok) return json({ error: data.error || "سرویس YouTube درخواست را نپذیرفت." }, 502);
+    if (!upstream.ok) return json({ error: data.error || "سرویس YouTube درخواست را نپذیرفت.", code: data.code || "backend_request_error", detail: data.detail || undefined }, 502);
     return json(data);
   } catch (error) {
     console.error("DL Hub YouTube API error:", error?.message || String(error));
