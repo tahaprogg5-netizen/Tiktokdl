@@ -1,6 +1,6 @@
 import { isAllowedMediaUrl } from "../_lib/media-hosts.js";
 
-const TIKTOK_API = "https://tdownv4.sl-bjs.workers.dev/";
+const TIKTOK_API = "https://backend1.tioo.eu.org/api/downloader/ttdl";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -16,7 +16,7 @@ function normalizeTikTokUrl(value) {
   if (typeof value !== "string") return null;
   let input = value.trim();
   if (!input || input.length > 4096) return null;
-  if (!/^https?:\/\//i.test(input)) input = "https://" + input;
+  if (!/^https?:\\/\\//i.test(input)) input = "https://" + input;
   try {
     const url = new URL(input);
     const host = url.hostname.toLowerCase();
@@ -40,30 +40,15 @@ async function recordDownload(env, success) {
   }
 }
 
-function collectUrls(value, output = [], depth = 0) {
-  if (depth > 6 || value == null) return output;
-  if (typeof value === "string") {
-    const candidate = value.trim();
-    if (/^https:\/\//i.test(candidate) && !output.includes(candidate)) output.push(candidate);
-    return output;
-  }
-  if (Array.isArray(value)) {
-    for (const item of value) collectUrls(item, output, depth + 1);
-    return output;
-  }
-  if (typeof value === "object") {
-    for (const [key, item] of Object.entries(value)) {
-      if (/(url|download|play|video|media|src|link)/i.test(key)) {
-        collectUrls(item, output, depth + 1);
-      }
-    }
-  }
-  return output;
-}
-
-function extractDownloadUrl(payload) {
-  const urls = collectUrls(payload);
-  return urls.find(isAllowedMediaUrl) || "";
+function extractVideoUrl(payload) {
+  if (!payload || payload.status !== true) return "";
+  const candidates = [
+    ...(Array.isArray(payload.video) ? payload.video : [payload.video]),
+    payload.data?.video,
+    payload.data?.play,
+    payload.data?.hdplay
+  ];
+  return candidates.find(value => typeof value === "string" && isAllowedMediaUrl(value)) || "";
 }
 
 export async function onRequestPost({ request, env }) {
@@ -79,11 +64,11 @@ export async function onRequestPost({ request, env }) {
 
   try {
     const apiUrl = new URL(TIKTOK_API);
-    apiUrl.searchParams.set("down", tiktokUrl);
+    apiUrl.searchParams.set("url", tiktokUrl);
 
     const upstream = await fetch(apiUrl.toString(), {
       headers: {
-        "accept": "application/json, text/plain, */*",
+        "accept": "application/json",
         "user-agent": "Mozilla/5.0 (compatible; TikTokDL/1.0)"
       },
       signal: AbortSignal.timeout(30000)
@@ -93,7 +78,7 @@ export async function onRequestPost({ request, env }) {
     if (!upstream.ok) {
       console.error("TikTok upstream HTTP:", upstream.status, raw.slice(0, 1200));
       await recordDownload(env, false);
-      return json({ error: "سرویس استخراج پاسخ ناموفق داد.", diagnostic: "upstream_http_" + upstream.status }, 502);
+      return json({ error: "سرویس قدیمی استخراج پاسخ HTTP ناموفق داد.", diagnostic: "upstream_http_" + upstream.status }, 502);
     }
 
     let payload;
@@ -105,12 +90,14 @@ export async function onRequestPost({ request, env }) {
       return json({ error: "پاسخ سرویس استخراج JSON معتبر نبود.", diagnostic: "upstream_non_json" }, 502);
     }
 
-    const mediaUrl = extractDownloadUrl(payload);
+    const mediaUrl = extractVideoUrl(payload);
     if (!mediaUrl) {
       console.error("TikTok upstream schema mismatch:", JSON.stringify(payload).slice(0, 1800));
       await recordDownload(env, false);
       return json({
-        error: "سرویس پاسخ داد، اما لینک ویدیو در پاسخ پیدا نشد.",
+        error: payload?.status === false
+          ? "سرویس قدیمی نتوانست این ویدیو را استخراج کند."
+          : "لینک ویدیو در پاسخ سرویس قدیمی پیدا نشد.",
         diagnostic: "download_url_not_found"
       }, 502);
     }
@@ -128,13 +115,12 @@ export async function onRequestPost({ request, env }) {
       videoCode = next;
     }
 
-    const author = payload?.author || payload?.data?.author || {};
     await recordDownload(env, true);
     return json({
       ok: true,
       type: "video",
-      description: payload?.title || payload?.data?.title || "",
-      author: author?.username || author?.nickname || payload?.username || "",
+      description: typeof payload.title === "string" ? payload.title : "",
+      author: typeof payload.creator === "string" ? payload.creator : "",
       code: videoCode,
       filename: "TikTokDL-" + videoCode + ".mp4",
       links: [mediaUrl]
