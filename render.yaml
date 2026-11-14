@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: dl-hub-youtube-api
+    runtime: python
+    plan: free
+    rootDir: youtube-api
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --workers 1 --threads 4 --timeout 240
+    healthCheckPath: /health
