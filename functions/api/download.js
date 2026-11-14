@@ -1,6 +1,6 @@
 import { isAllowedMediaUrl } from "../_lib/media-hosts.js";
 
-const TIKTOK_API = "https://backend1.tioo.eu.org/api/downloader/ttdl";
+const TIKTOK_API = "https://backend1.tioo.eu.org/ttdl";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
