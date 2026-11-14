@@ -3,15 +3,23 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
 });
 
-function validYoutubeUrl(value) {
-  if (typeof value !== "string" || value.length > 2048) return false;
+function normalizeYoutubeUrl(value) {
+  if (typeof value !== "string" || value.length > 2048) return null;
   try {
-    const url = new URL(value);
+    const url = new URL(value.trim());
     const host = url.hostname.toLowerCase();
-    return ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"].includes(host)
-      && ["http:", "https:"].includes(url.protocol)
-      && !url.username && !url.password;
-  } catch { return false; }
+    if (!["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"].includes(host)
+      || !["http:", "https:"].includes(url.protocol) || url.username || url.password) return null;
+    let videoId = "";
+    if (host.includes("youtu.be")) videoId = url.pathname.split("/").filter(Boolean)[0] || "";
+    else if (url.pathname === "/watch") videoId = url.searchParams.get("v") || "";
+    else {
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (["shorts", "embed", "live"].includes(parts[0])) videoId = parts[1] || "";
+    }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return null;
+    return "https://www.youtube.com/watch?v=" + videoId;
+  } catch { return null; }
 }
 
 export async function onRequestPost({ request, env }) {
@@ -20,7 +28,7 @@ export async function onRequestPost({ request, env }) {
   catch { return json({ error: "درخواست نامعتبر است." }, 400); }
 
   if (body?.consent !== true) return json({ error: "برای ادامه باید اجازه دانلود این محتوا را داشته باشی." }, 403);
-  if (!validYoutubeUrl(body?.url)) return json({ error: "لینک معتبر YouTube وارد کن." }, 400);
+  const youtubeUrl = normalizeYoutubeUrl(body?.url);\n  if (!youtubeUrl) return json({ error: "لینک معتبر ویدیوی YouTube وارد کن." }, 400);
 
   const base = env.YOUTUBE_API_URL;
   if (!base) return json({ error: "سرویس YouTube هنوز تنظیم نشده است." }, 503);
@@ -41,7 +49,7 @@ export async function onRequestPost({ request, env }) {
     const upstream = await fetch(target.toString(), {
       method: "POST",
       headers: { "content-type": "application/json", "accept": body.action === "download" ? "video/mp4, application/json" : "application/json" },
-      body: JSON.stringify({ url: body.url }),
+      body: JSON.stringify({ url: youtubeUrl }),
       signal: AbortSignal.timeout(240000)
     });
 
@@ -52,8 +60,19 @@ export async function onRequestPost({ request, env }) {
         try { data = JSON.parse(raw); } catch {}
         return json({ error: data.error || "دانلود از سرویس انجام نشد." }, upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502);
       }
+      const contentType = (upstream.headers.get("content-type") || "").toLowerCase();
+      if (contentType.includes("application/json") || contentType.includes("text/")) {
+        const raw = await upstream.text();
+        let data = {};
+        try { data = JSON.parse(raw); } catch {}
+        console.error("YouTube backend returned a non-file success response:", raw.slice(0, 1200));
+        return json({
+          error: data.error || "سرور YouTube فایل ویدیو برنگرداند؛ نسخه فعلی بک‌اند فقط پیام موفقیت می‌دهد و باید اصلاح شود.",
+          diagnostic: "backend_did_not_return_video"
+        }, 502);
+      }
       const headers = new Headers({ "cache-control": "no-store", "x-content-type-options": "nosniff" });
-      headers.set("content-type", upstream.headers.get("content-type") || "video/mp4");
+      headers.set("content-type", contentType || "video/mp4");
       const disposition = upstream.headers.get("content-disposition");
       if (disposition) headers.set("content-disposition", disposition);
       const length = upstream.headers.get("content-length");
