@@ -15,7 +15,7 @@ function normalizeTikTokUrl(value) {
   if (typeof value !== "string") return null;
   let input = value.trim();
   if (!input || input.length > 4096) return null;
-  if (!/^https?:\\/\\//i.test(input)) input = "https://" + input;
+  if (!(input.toLowerCase().startsWith("http://") || input.toLowerCase().startsWith("https://"))) input = "https://" + input;
 
   try {
     const url = new URL(input);
