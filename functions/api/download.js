@@ -1,5 +1,6 @@
-import { ttdl } from "btch-downloader";
 import { isAllowedMediaUrl } from "../_lib/media-hosts.js";
+
+const TIKTOK_API = "https://tdownv4.sl-bjs.workers.dev/";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -15,7 +16,7 @@ function normalizeTikTokUrl(value) {
   if (typeof value !== "string") return null;
   let input = value.trim();
   if (!input || input.length > 4096) return null;
-  if (!(input.toLowerCase().startsWith("http://") || input.toLowerCase().startsWith("https://"))) input = "https://" + input;
+  if (!/^https?:\/\//i.test(input)) input = "https://" + input;
 
   try {
     const url = new URL(input);
@@ -29,32 +30,6 @@ function normalizeTikTokUrl(value) {
   }
 }
 
-function mediaUrl(item) {
-  if (typeof item === "string") return item.trim();
-  if (!item || typeof item !== "object") return "";
-
-  for (const candidate of [
-    item.url,
-    item.play_addr,
-    item.playAddr,
-    item.downloadAddr,
-    item.url_list?.[0],
-    item.urlList?.[0],
-    item.play_addr?.url_list?.[0],
-    item.playAddr?.urlList?.[0]
-  ]) {
-    if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
-  }
-  return "";
-}
-
-function getVideoItems(result) {
-  const value = result?.video ?? result?.data?.video;
-  if (Array.isArray(value)) return value;
-  if (typeof value === "string" || (value && typeof value === "object")) return [value];
-  return [];
-}
-
 async function recordDownload(env, success) {
   if (!env.DB) return;
   try {
@@ -64,6 +39,17 @@ async function recordDownload(env, success) {
   } catch (error) {
     console.error("TikTokDL stats write failed:", error?.message || String(error));
   }
+}
+
+function extractDownloadUrl(payload) {
+  const candidates = [
+    payload?.download_url,
+    payload?.data?.download_url,
+    payload?.video?.download_url,
+    payload?.video?.url,
+    payload?.data?.video?.download_url
+  ];
+  return candidates.find(value => typeof value === "string" && value.trim())?.trim() || "";
 }
 
 export async function onRequestPost({ request, env }) {
@@ -80,19 +66,29 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    // Run the downloader library inside the Cloudflare Pages Function.
-    // No separate Koa/Node server or external API base URL is required.
-    const result = await ttdl(tiktokUrl);
-    const links = [...new Set(
-      getVideoItems(result)
-        .map(mediaUrl)
-        .filter(url => url && isAllowedMediaUrl(url))
-    )].slice(0, 10);
+    const apiUrl = new URL(TIKTOK_API);
+    apiUrl.searchParams.set("down", tiktokUrl);
 
-    if (!links.length) {
+    const upstream = await fetch(apiUrl.toString(), {
+      method: "GET",
+      headers: {
+        "accept": "application/json",
+        "user-agent": "TikTokDL/1.0"
+      },
+      signal: AbortSignal.timeout(30000)
+    });
+
+    if (!upstream.ok) {
+      throw new Error("upstream_http_" + upstream.status);
+    }
+
+    const payload = await upstream.json();
+    const mediaUrl = extractDownloadUrl(payload);
+
+    if (payload?.error || !mediaUrl || !isAllowedMediaUrl(mediaUrl)) {
       await recordDownload(env, false);
       return json({
-        error: "برای این ویدیو لینک دریافت معتبری پیدا نشد. عمومی‌بودن ویدیو را بررسی کن."
+        error: "برای این ویدیو لینک دریافت معتبری پیدا نشد. عمومی‌بودن ویدیو و اجازه دریافت آن را بررسی کن."
       }, 502);
     }
 
@@ -111,21 +107,22 @@ export async function onRequestPost({ request, env }) {
       videoCode = next;
     }
 
+    const author = payload?.author || payload?.data?.author || {};
     await recordDownload(env, true);
     return json({
       ok: true,
       type: "video",
-      description: result?.title || result?.data?.title || "",
-      author: result?.creator || result?.author?.username || result?.author?.nickname || "",
+      description: payload?.title || payload?.data?.title || "",
+      author: author?.username || author?.nickname || payload?.username || "",
       code: videoCode,
       filename: "TikTokDL-" + videoCode + ".mp4",
-      links
+      links: [mediaUrl]
     });
   } catch (error) {
-    console.error("TikTok downloader error:", error?.message || String(error));
+    console.error("TikTok API error:", error?.message || String(error));
     await recordDownload(env, false);
     return json({
-      error: "استخراج ویدیو ناموفق بود. ممکن است ویدیو در دسترس عمومی نباشد یا سرویس موقتاً پاسخ ندهد."
+      error: "استخراج ویدیو ناموفق بود. ممکن است سرویس موقتاً پاسخ ندهد یا ویدیو برای دریافت عمومی در دسترس نباشد."
     }, 502);
   }
 }
