@@ -32,9 +32,15 @@ function validYoutubeUrl(value) {
     const u = new URL(value);
     return ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"].includes(u.hostname.toLowerCase())
       && (u.protocol === "https:" || u.protocol === "http:");
-  } catch {
+  } catch { return false; }
+}
+
+function consented() {
+  if (!$("youtubeConsent").checked) {
+    status("ابتدا تأیید اجازه دانلود را فعال کن.", "error");
     return false;
   }
+  return true;
 }
 
 async function youtubeRequest(action, extra = {}) {
@@ -56,18 +62,14 @@ infoButton.addEventListener("click", async () => {
     status("لینک معتبر YouTube وارد کن.", "error");
     return;
   }
-  if (!$("youtubeConsent").checked) {
-    status("ابتدا تأیید اجازه دانلود را فعال کن.", "error");
-    return;
-  }
+  if (!consented()) return;
 
   infoButton.disabled = true;
   infoButton.querySelector("span").textContent = "در حال بررسی…";
   status("در حال دریافت اطلاعات و کیفیت‌ها…");
   try {
     const [info, available] = await Promise.all([
-      youtubeRequest("info"),
-      youtubeRequest("resolutions")
+      youtubeRequest("info"), youtubeRequest("resolutions")
     ]);
     $("youtubeTitle").textContent = info.title || "ویدیوی YouTube";
     $("youtubeAuthor").textContent = info.author || "";
@@ -77,11 +79,11 @@ infoButton.addEventListener("click", async () => {
       Number.isFinite(duration) && duration > 0 ? Math.floor(duration / 60) + " دقیقه" : "",
       Number.isFinite(views) && views > 0 ? new Intl.NumberFormat("fa-IR").format(views) + " بازدید" : ""
     ].filter(Boolean).join(" · ");
-    const videoId = new URL(currentYoutubeUrl).searchParams.get("v");
-    const shortId = new URL(currentYoutubeUrl).hostname.includes("youtu.be")
-      ? new URL(currentYoutubeUrl).pathname.slice(1) : videoId;
+
+    const parsed = new URL(currentYoutubeUrl);
+    const shortId = parsed.hostname.includes("youtu.be") ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
     const thumb = $("youtubeThumb");
-    if (shortId && /^[\w-]{6,20}$/.test(shortId)) {
+    if (shortId && /^[\\w-]{6,20}$/.test(shortId)) {
       thumb.src = "https://i.ytimg.com/vi/" + encodeURIComponent(shortId) + "/hqdefault.jpg";
       thumb.classList.remove("hidden");
     } else {
@@ -122,21 +124,43 @@ downloadButton.addEventListener("click", async () => {
     status("یک کیفیت معتبر انتخاب کن.", "error");
     return;
   }
-  if (!$("youtubeConsent").checked) {
-    status("تأیید اجازه دانلود الزامی است.", "error");
-    return;
-  }
+  if (!consented()) return;
+
   downloadButton.disabled = true;
-  downloadButton.querySelector("span").textContent = "در حال ارسال…";
-  status("درخواست به سرویس ارسال شد…");
+  downloadButton.querySelector("span").textContent = "در حال دریافت فایل…";
+  status("در حال آماده‌سازی فایل؛ این کار ممکن است کمی طول بکشد.");
   try {
-    const result = await youtubeRequest("download", { resolution: quality });
-    status(result.message || "درخواست دانلود در سرویس ثبت شد.", "success");
+    const response = await fetch("/api/youtube", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "download", url: currentYoutubeUrl,
+        resolution: quality, consent: $("youtubeConsent").checked
+      })
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || "دانلود انجام نشد.");
+    }
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition") || "";
+    const encoded = disposition.match(/filename\\*=UTF-8''([^;]+)/i);
+    const basic = disposition.match(/filename="?([^";]+)"?/i);
+    const filename = encoded ? decodeURIComponent(encoded[1]) : (basic ? basic[1] : "DL-Hub-video.mp4");
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    status("فایل آماده شد و دریافت آن آغاز شد.", "success");
   } catch (error) {
     status(error.message || "دانلود انجام نشد.", "error");
   } finally {
     downloadButton.disabled = false;
-    downloadButton.querySelector("span").textContent = "ارسال درخواست دانلود";
+    downloadButton.querySelector("span").textContent = "دریافت فایل";
   }
 });
 
