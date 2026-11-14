@@ -2,9 +2,8 @@ import os
 import re
 import shutil
 import tempfile
-from datetime import datetime
-
 import yt_dlp
+from yt_dlp.version import __version__ as YTDLP_VERSION
 from flask import Flask, jsonify, request, send_file
 
 app = Flask(__name__)
@@ -83,7 +82,7 @@ def health():
         "ok": True,
         "service": "DL Hub YouTube API",
         "engine": "yt-dlp",
-        "engine_version": yt_dlp.version.__version__,
+        "engine_version": YTDLP_VERSION,
     })
 
 
