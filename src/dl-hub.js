@@ -68,9 +68,10 @@ infoButton.addEventListener("click", async () => {
   infoButton.querySelector("span").textContent = "در حال بررسی…";
   status("در حال دریافت اطلاعات و کیفیت‌ها…");
   try {
-    const [info, available] = await Promise.all([
-      youtubeRequest("info"), youtubeRequest("resolutions")
-    ]);
+    // One extraction call returns both metadata and progressive MP4 qualities.
+    // Running two yt-dlp extractions concurrently can trigger YouTube throttling. 
+    const info = await youtubeRequest("info");
+    const available = { progressive: info.progressive || [] };
     $("youtubeTitle").textContent = info.title || "ویدیوی YouTube";
     $("youtubeAuthor").textContent = info.author || "";
     const duration = Number(info.length);
