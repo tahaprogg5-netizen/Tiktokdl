@@ -78,7 +78,7 @@ def download_by_resolution(resolution):
     url, error = read_url()
     if error:
         return error
-    if not re.fullmatch(r"\\d{3,4}p", resolution):
+    if not re.fullmatch(r"\d{3,4}p", resolution):
         return jsonify({"error": "Invalid resolution."}), 400
 
     temp_dir = tempfile.mkdtemp(prefix="dlhub-")
