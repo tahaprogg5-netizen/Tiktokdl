@@ -2,28 +2,62 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10131b"><meta name="description" content="دانلودر ساده و سریع تیک‌تاک">
-<title>TikTokDL | دانلودر تیک‌تاک</title>
+<meta name="theme-color" content="#10131b"><meta name="description" content="DL Hub؛ ابزار دریافت محتوای مجاز از TikTok و YouTube">
+<title>DL Hub | دانلودر چندپلتفرمی</title>
 </head>
 <body>
 <header class="topbar">
-  <button class="brand" id="brandSecret" type="button" aria-label="TikTokDL"><span class="brand-icon">♪</span><span>TikTok<span class="brand-accent">DL</span></span></button>
+  <button class="brand" id="brandSecret" type="button" aria-label="DL Hub"><span class="brand-icon">DL</span><span>DL <span class="brand-accent">Hub</span></span></button>
   <div class="top-actions">
     <button class="tool-btn" id="langToggle" type="button">EN</button>
     <button class="tool-btn" id="themeToggle" type="button" aria-label="تغییر تم">☼</button>
   </div>
 </header>
 <main class="container">
-  <div class="hero">
-    <div class="eyebrow"><span class="dot"></span><span data-i18n="eyebrow">فقط برای TikTok</span></div>
-    <h1 data-i18n="headline">ویدیوهای تیک‌تاک را <span>دریافت کن</span></h1>
-    <p class="subtitle" data-i18n="subtitle">لینک ویدیوی عمومی را وارد کن تا لینک دریافت آن بررسی شود.</p>
-  </div>
-  <section class="download-card">
-    <label for="videoUrl" data-i18n="linkLabel">لینک ویدیوی TikTok</label>
-    <div class="input-row"><input id="videoUrl" type="url" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="url" dir="ltr"><button id="downloadBtn" type="button"><span data-i18n="download">دریافت لینک</span><b>←</b></button></div>
-    <p id="status" class="status" role="status"></p>
-    <div id="result" class="result hidden"></div>
+  <nav class="platform-tabs" aria-label="انتخاب پلتفرم">
+    <button class="platform-tab active" type="button" data-platform="tiktok"><span class="platform-mark tiktok-mark">♪</span><span>TikTok</span></button>
+    <button class="platform-tab youtube-tab" type="button" data-platform="youtube"><span class="platform-mark youtube-mark">▶</span><span>YouTube</span><span class="new-tag">NEW</span></button>
+  </nav>
+  <section id="tiktokPanel" class="platform-panel active">
+    <div class="hero">
+      <div class="eyebrow"><span class="dot"></span><span data-i18n="eyebrow">TikTok</span></div>
+      <h1 data-i18n="headline">ویدیوهای تیک‌تاک را <span>دریافت کن</span></h1>
+      <p class="subtitle" data-i18n="subtitle">لینک ویدیوی عمومی را وارد کن تا لینک دریافت آن بررسی شود.</p>
+    </div>
+    <section class="download-card">
+      <label for="videoUrl" data-i18n="linkLabel">لینک ویدیوی TikTok</label>
+      <div class="input-row"><input id="videoUrl" type="url" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="url" dir="ltr"><button id="downloadBtn" type="button"><span data-i18n="download">دریافت لینک</span><b>←</b></button></div>
+      <p id="status" class="status" role="status"></p>
+      <div id="result" class="result hidden"></div>
+    </section>
+  </section>
+  <section id="youtubePanel" class="platform-panel youtube-panel" hidden>
+    <div class="hero">
+      <div class="eyebrow youtube-eyebrow"><span class="youtube-dot"></span>YouTube Downloader</div>
+      <h1>دانلود از <span>YouTube</span></h1>
+      <p class="subtitle">اطلاعات و کیفیت‌های قابل‌دریافت ویدیو را بررسی کن.</p>
+    </div>
+    <section class="download-card youtube-card">
+      <label for="youtubeUrl">لینک ویدیوی YouTube</label>
+      <div class="input-row youtube-input-row">
+        <input id="youtubeUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url" dir="ltr">
+        <button id="youtubeInfoBtn" type="button"><span>بررسی ویدیو</span><b>⌕</b></button>
+      </div>
+      <label class="youtube-consent"><input id="youtubeConsent" type="checkbox"><span>تأیید می‌کنم فقط ویدیویی را دریافت می‌کنم که مالک آن هستم یا اجازه دانلودش را دارم.</span></label>
+      <p id="youtubeStatus" class="status" role="status"></p>
+      <div id="youtubeDetails" class="youtube-details hidden">
+        <div class="youtube-preview-row">
+          <img id="youtubeThumb" class="youtube-thumb hidden" alt="تصویر بندانگشتی ویدیو">
+          <div><strong id="youtubeTitle"></strong><small id="youtubeAuthor"></small><small id="youtubeMeta"></small></div>
+        </div>
+        <label for="youtubeQuality">کیفیت MP4</label>
+        <div class="input-row youtube-quality-row">
+          <select id="youtubeQuality"><option value="">ابتدا لینک را بررسی کن</option></select>
+          <button id="youtubeDownloadBtn" type="button" disabled><span>ارسال درخواست دانلود</span><b>↓</b></button>
+        </div>
+        <p class="youtube-api-note">توجه: API معرفی‌شده فایل را روی سرور خودش ذخیره می‌کند و در پاسخ فعلی، لینک مستقیم فایل را برنمی‌گرداند.</p>
+      </div>
+    </section>
   </section>
   <section class="ad-slot" aria-label="Advertisement">
     <span class="ad-label" data-i18n="adLabel">تبلیغات</span>
@@ -32,7 +66,7 @@
   </section>
   <p class="disclaimer" data-i18n="disclaimer">لطفاً فقط محتوایی را دریافت کن که مالک آن هستی یا اجازه استفاده از آن را داری. رعایت قوانین پلتفرم و حقوق سازندگان بر عهده کاربر است.</p>
 </main>
-<footer><span>© TikTokDL</span><span class="footer-dot">·</span><span data-i18n="footer">ساده، خلوت و مخصوص تیک‌تاک</span></footer>
+<footer><span>© DL Hub</span><span class="footer-dot">·</span><span data-i18n="footer">دانلودر چندپلتفرمی</span></footer>
 <div id="adminModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
  <section class="modal-panel">
   <button id="adminClose" class="close" type="button" aria-label="Close">×</button>
@@ -64,14 +98,11 @@
       <label>عنوان صفحه<input id="pageTitleInput" maxlength="120" required placeholder="مثلاً درباره ما"></label>
       <label>آدرس صفحه (انگلیسی)<input id="pageSlugInput" maxlength="60" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="about-us" dir="ltr"></label>
       <label class="page-publish"><input id="pagePublishedInput" type="checkbox"><span>انتشار صفحه برای همه</span></label>
-      <div class="block-toolbar"><strong>افزودن بلوک</strong>
-       <div class="block-add-buttons">
+      <div class="block-toolbar"><strong>افزودن بلوک</strong><div class="block-add-buttons">
         <button type="button" data-add-block="heading">عنوان</button><button type="button" data-add-block="text">متن</button><button type="button" data-add-block="image">تصویر</button><button type="button" data-add-block="banner">بنر</button><button type="button" data-add-block="button">دکمه</button><button type="button" data-add-block="divider">جداکننده</button><button type="button" data-add-block="spacer">فاصله</button>
-       </div>
-      </div>
+      </div></div>
       <div id="pageBlocks" class="page-blocks"><p class="empty-ads">هنوز بلوکی اضافه نشده است.</p></div>
-      <div class="page-editor-actions"><button type="submit" class="primary">ذخیره صفحه</button><button type="button" class="tool-btn hidden" id="cancelPageEdit">انصراف</button></div>
-      <p id="pageStatus" class="status"></p>
+      <div class="page-editor-actions"><button type="submit" class="primary">ذخیره صفحه</button><button type="button" class="tool-btn hidden" id="cancelPageEdit">انصراف</button></div><p id="pageStatus" class="status"></p>
      </form>
     </div>
    </section>
@@ -79,4 +110,5 @@
  </section>
 </div>
 <script type="module" src="/src/main.js"></script>
+<script type="module" src="/src/dl-hub.js"></script>
 </body></html>
