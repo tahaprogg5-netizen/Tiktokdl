@@ -28,7 +28,8 @@ export async function onRequestPost({ request, env }) {
   catch { return json({ error: "درخواست نامعتبر است." }, 400); }
 
   if (body?.consent !== true) return json({ error: "برای ادامه باید اجازه دانلود این محتوا را داشته باشی." }, 403);
-  const youtubeUrl = normalizeYoutubeUrl(body?.url);\n  if (!youtubeUrl) return json({ error: "لینک معتبر ویدیوی YouTube وارد کن." }, 400);
+  const youtubeUrl = normalizeYoutubeUrl(body?.url);
+  if (!youtubeUrl) return json({ error: "لینک معتبر ویدیوی YouTube وارد کن." }, 400);
 
   const base = env.YOUTUBE_API_URL;
   if (!base) return json({ error: "سرویس YouTube هنوز تنظیم نشده است." }, 503);
