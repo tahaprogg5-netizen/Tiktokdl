@@ -1,6 +1,6 @@
 import { isAllowedMediaUrl } from "../_lib/media-hosts.js";
 
-const TIKTOK_API = "https://backend1.tioo.eu.org/ttdl";
+const TIKTOK_API = "https://tdownv4.sl-bjs.workers.dev/";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -44,9 +44,10 @@ async function recordDownload(env, success) {
 function extractVideoUrl(payload) {
   if (!payload || typeof payload !== "object") return "";
 
-  // BOTCAHX/tiktokdl-api returns { audio: [...], video: [...] }.
-  // It does not return a "status: true" field.
+  // slbjs/TikTok-Downloader-API returns { download_url, title, author, ... }.
   const candidates = [
+    payload.download_url,
+    payload.data?.download_url,
     payload.video,
     payload.data?.video,
     payload.result?.video,
@@ -80,12 +81,13 @@ export async function onRequestPost({ request, env }) {
 
   try {
     const apiUrl = new URL(TIKTOK_API);
-    apiUrl.searchParams.set("url", tiktokUrl);
+    apiUrl.searchParams.set("down", tiktokUrl);
 
     const upstream = await fetch(apiUrl.toString(), {
+      method: "GET",
       headers: {
         "accept": "application/json",
-        "user-agent": "Mozilla/5.0 (compatible; TikTokDL/1.0)"
+        "user-agent": "Mozilla/5.0 (compatible; DLHub/1.0)"
       },
       signal: AbortSignal.timeout(30000)
     });
@@ -94,7 +96,7 @@ export async function onRequestPost({ request, env }) {
     if (!upstream.ok) {
       console.error("TikTok upstream HTTP:", upstream.status, raw.slice(0, 1200));
       await recordDownload(env, false);
-      return json({ error: "سرویس قدیمی استخراج پاسخ HTTP ناموفق داد.", diagnostic: "upstream_http_" + upstream.status }, 502);
+      return json({ error: "سرویس استخراج تیک‌تاک پاسخ HTTP ناموفق داد.", diagnostic: "upstream_http_" + upstream.status }, 502);
     }
 
     let payload;
@@ -136,7 +138,7 @@ export async function onRequestPost({ request, env }) {
       ok: true,
       type: "video",
       description: typeof payload.title === "string" ? payload.title : "",
-      author: typeof payload.creator === "string" ? payload.creator : "",
+      author: typeof payload.author?.username === "string" ? payload.author.username : (typeof payload.author?.nickname === "string" ? payload.author.nickname : (typeof payload.creator === "string" ? payload.creator : "")),
       code: videoCode,
       filename: "TikTokDL-" + videoCode + ".mp4",
       links: [mediaUrl]
