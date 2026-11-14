@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 import tempfile
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 from flask import Flask, jsonify, request, send_file
 from pytubefix import YouTube
@@ -11,22 +11,32 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 
 
-def valid_youtube_url(value):
+def normalize_youtube_url(value):
     if not isinstance(value, str) or len(value) > 2048:
-        return False
+        return None
     try:
-        parsed = urlparse(value)
-        host = (parsed.hostname or "").lower()
-        allowed = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}
-        return parsed.scheme in {"http", "https"} and host in allowed and not parsed.username and not parsed.password
+        parsed = urlparse(value.strip())
+        host = (parsed.hostname or '').lower()
+        allowed = {'youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be', 'www.youtu.be'}
+        if parsed.scheme not in {'http', 'https'} or host not in allowed or parsed.username or parsed.password:
+            return None
+        if host.endswith('youtu.be'):
+            video_id = parsed.path.strip('/').split('/')[0]
+        elif parsed.path == '/watch':
+            video_id = parse_qs(parsed.query).get('v', [''])[0]
+        else:
+            parts = [part for part in parsed.path.split('/') if part]
+            video_id = parts[1] if len(parts) >= 2 and parts[0] in {'shorts', 'embed', 'live'} else ''
+        if not re.fullmatch(r'[A-Za-z0-9_-]{11}', video_id):
+            return None
+        return 'https://www.youtube.com/watch?v=' + video_id
     except Exception:
-        return False
-
+        return None
 
 def read_url():
     data = request.get_json(silent=True) or {}
-    url = data.get("url")
-    if not valid_youtube_url(url):
+    url = normalize_youtube_url(data.get("url"))
+    if not url:
         return None, (jsonify({"error": "Invalid YouTube URL."}), 400)
     return url, None
 
