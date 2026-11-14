@@ -1,13 +1,10 @@
 {
   "name": "tiktokdl",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "build": "vite build"
-  },
-  "dependencies": {
-    "btch-downloader": "6.4.0"
   },
   "devDependencies": {
     "vite": "^6.4.1"
